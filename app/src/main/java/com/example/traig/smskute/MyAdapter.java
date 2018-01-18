@@ -21,24 +21,30 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
+import java.util.ArrayList;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * Created by traig on 1/10/2018.
  */
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
-    favouritItems person ;
     private String[] listItems;
     private Context mContext;
-    private favouritItems FavouritItems;
     private String fileName;
+    private ArrayList<String> listItemFavourit;
     public MyAdapter(String[] listItems, Context mContext,String fileName) {
         this.listItems = listItems;
         this.mContext = mContext;
         this.fileName = fileName;
+        listItemFavourit = readFile();
+        if (listItemFavourit == null)
+            listItemFavourit = new ArrayList<>();
     }
 
     @Override
@@ -50,12 +56,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        person = readFile("data2.ser");
-        if(person != null){
-            if(person.isLove[position] == false)
-            holder.loveBtn.setImageResource(R.drawable.ic_unfavorite);
-            else holder.loveBtn.setImageResource(R.drawable.ic_favorite);
-        }
+//        person = readFile("data2.ser");
+//        if(person != null){
+//            if(person.isLove[position] == false)
+//            holder.loveBtn.setImageResource(R.drawable.ic_unfavorite);
+//            else holder.loveBtn.setImageResource(R.drawable.ic_favorite);
+//        }
 
 
         ClipboardManager myClipboard;
@@ -86,43 +92,64 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             public void onClick(View view) {
 
                 if(flag[0] == true){
+                    //Log.i(TAG, listItemFavourit.get(0));
                     flag[0] = false;
                     holder.loveBtn.setImageResource(R.drawable.ic_favorite);
                     Toast.makeText(mContext ,"ADDED TO FAVOURIT",Toast.LENGTH_LONG).show();
+                    listItemFavourit.add(listItems[position]);
+                    Log.i(TAG,Integer.toString( listItemFavourit.size()));
+                    writeFile();
                 }
 
                 else {
                     flag[0] = true;
                     Toast.makeText(mContext ,"REMOVED TO FAVOURIT",Toast.LENGTH_LONG).show();
-                holder.loveBtn.setImageResource(R.drawable.ic_unfavorite);}
+                    listItemFavourit.remove(listItemFavourit.size() -1);
+                    Log.i(TAG,Integer.toString( listItemFavourit.size()  ));
+                    holder.loveBtn.setImageResource(R.drawable.ic_unfavorite);
+                     writeFile();
+                }
             }
         });
-       // notifyItemChanged(position);
     }
 
-    public favouritItems readFile(String pathname){
-        FileInputStream fis = null;
+               public ArrayList<String> readFile() {
+                   FileInputStream fis = null;
 
+                   try {
+                       fis = mContext.openFileInput("listItem1.ser");
+                       ObjectInputStream is = new ObjectInputStream(fis);
+                       listItemFavourit = (ArrayList<String>) is.readObject();
+                       is.close();
+                       fis.close();
+                   } catch (FileNotFoundException e) {
+                       //Toast.makeText(context, "ERROR", Toast.LENGTH_LONG).show();
+                   } catch (IOException e) {
+                       e.printStackTrace();
+                   } catch (ClassNotFoundException e) {
+                       e.printStackTrace();
+                   } finally {
+                       return listItemFavourit;
+
+                   }
+    }
+    public void writeFile(){
+        FileOutputStream fos = null;
         try {
-            fis = mContext.openFileInput(pathname);
-            ObjectInputStream is = new ObjectInputStream(fis);
-            person = (favouritItems) is.readObject();
-            Toast.makeText(mContext, "DONE", Toast.LENGTH_LONG).show();
-            is.close();
-            fis.close();
-        } catch (FileNotFoundException e) {
-            Toast.makeText(mContext, "ERROR", Toast.LENGTH_LONG).show();
+            fos = mContext.openFileOutput("listItem1.ser", Context.MODE_PRIVATE);
+            ObjectOutputStream os = null;
+            os = new ObjectOutputStream(fos);
+            os.writeObject(listItemFavourit);
+            os.close();
+            fos.close();
+        } catch (NotSerializableException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }finally {
-            return person;
         }
-
     }
 
-    @Override
+            @Override
     public int getItemCount() {
         return listItems.length;
     }
