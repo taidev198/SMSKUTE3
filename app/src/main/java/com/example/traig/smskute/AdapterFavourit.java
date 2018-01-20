@@ -28,13 +28,12 @@ import static android.content.ContentValues.TAG;
 
 public class AdapterFavourit  extends RecyclerView.Adapter<AdapterFavourit.ViewHolder> {
 
-    private ArrayList<String> listItem;
+    private FavoritItem listItem;
     Context context;
 
-    public AdapterFavourit( Context context,ArrayList<String> listItem) {
+    public AdapterFavourit( Context context,FavoritItem listItem) {
 
         this.listItem = listItem;
-
         this.context = context;
         if(this.listItem == null)
         Toast.makeText(context, "EMPTY LIST", Toast.LENGTH_LONG).show();
@@ -62,66 +61,74 @@ public class AdapterFavourit  extends RecyclerView.Adapter<AdapterFavourit.ViewH
     @Override
     public void onBindViewHolder(AdapterFavourit.ViewHolder holder, final int position) {
         if(listItem != null){
-            holder.title.setText(listItem.get(position));
+            holder.title.setText(listItem.getList().get(position));
             holder.loveBtn.setImageResource(R.drawable.ic_favorite);
             holder.loveBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Toast.makeText(context ,"REMOVED TO FAVOURIT",Toast.LENGTH_LONG).show();
-                    listItem.remove(position);
-                    writeFile();
+                    listItem.getList().remove(position);
+                    FavoritItem favoritItem =(FavoritItem) readFile(listItem.getPathname().get(position));
+                    Log.d(TAG, "filename tab3:" + listItem.getPathname().get(position));
+                    favoritItem.getIsFavorible().set(Integer.parseInt(listItem.getPos().get(position)),"false");
+                    //favoritItem.getPos().remove(position);
+                    Log.d(TAG, "pos:" + listItem.getPos().get(position));
+                    listItem.getPos().remove(position);
+
+                    writeFile(listItem.getPathname().get(position),favoritItem);
+
+                    listItem.getPathname().remove(position);
+
+                    writeFile("ListItems2.ser",listItem);
+
                     notifyDataSetChanged();
                 }
             });
         }
 
-
-
     }
     @Override
     public int getItemCount() {
         if(listItem != null)
-             return listItem.size();
+             return listItem.getList().size();
         return 0;
     }
 
 
-    public ArrayList<String> readFile(){
+    public Object readFile(String pathname){
         FileInputStream fis = null;
-
+        Object person = null;
         try {
-            fis = context.openFileInput("listItem1.ser");
+            fis = context.openFileInput(pathname);
             ObjectInputStream is = new ObjectInputStream(fis);
-            listItem = (ArrayList<String>) is.readObject();
-            Log.d(TAG, "readFile: done");
+            person =  is.readObject();
             is.close();
             fis.close();
         } catch (FileNotFoundException e) {
-            //Toast.makeText(context, "ERROR", Toast.LENGTH_LONG).show();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }finally {
-            return listItem;
+            return person;
         }
 
     }
 
-    public void writeFile(){
-                FileOutputStream fos = null;
-                try {
-                    fos = context.openFileOutput("listItem1.ser", Context.MODE_PRIVATE);
-                    ObjectOutputStream os = null;
-                    os = new ObjectOutputStream(fos);
-                    os.writeObject(listItem);
-                    Log.d(TAG, "writeFile: done");
-                    os.close();
-                    fos.close();
-                } catch (NotSerializableException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+    public void writeFile(String pathname,Object obj){
+        FileOutputStream fos = null;
+        try {
+            fos = context.openFileOutput(pathname, Context.MODE_PRIVATE);
+            ObjectOutputStream os = null;
+            os = new ObjectOutputStream(fos);
+            os.writeObject(obj);
+            os.close();
+            fos.close();
+        } catch (NotSerializableException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
 }

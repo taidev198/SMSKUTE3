@@ -38,7 +38,7 @@ public class Content extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        adapter = new MyAdaper(getResources().getStringArray(R.array.title1),this);
+        adapter = new MyAdaper(getResources().getStringArray(R.array.title),this);
         recyclerView.setAdapter(adapter);
         recyclerView.setOnClickListener(new View.OnClickListener() {
             @Override

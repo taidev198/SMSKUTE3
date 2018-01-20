@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:background="@color/colorPrimary"
-    android:layout_height="wrap_content">
+    android:layout_width="300dp"
+    android:background="@color/white"
+    android:layout_height="match_parent">
 
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <TextView
             android:id="@+id/tv_profile"
-            android:layout_marginLeft="130dp"
+            android:layout_marginLeft="90dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="PROFILE"
@@ -19,7 +19,7 @@
             android:id="@+id/image"
             android:foregroundGravity="center"
             android:layout_marginTop="45dp"
-            android:layout_marginLeft="140dp"
+            android:layout_marginLeft="100dp"
             android:src="@drawable/avatar1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
@@ -33,23 +33,23 @@
                 android:gravity="left"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="FULL NAME: NGUYỄN THÀNH TÀI
-DATE OF BIRTH:0303-1998
-SCHOOL:HỌC VIỆN KỸ THUẬT MẬT MÃ
-PHONE:01627249988
-EMAIL:TẢIGIUXOM9X@GMAIL.COM
+                android:text="FULL NAME:NGUYỄN THÀNH TÀI\n
+DATE OF BIRTH:03-03-1998\n
+SCHOOL:HỌC VIỆN KỸ THUẬT MẬT MÃ\n
+PHONE:01627249988\n
+EMAIL:TRAIGIUXOM9X@GMAIL.COM\n
 FB:facebook.com/NTT.TaiDev98"
-                android:textSize="20dp"
+                android:textSize="15dp"
                 android:textColor="@color/colorPrimaryDark"/>
             <Button
                 android:id="@+id/btn_ok_profile"
-                android:layout_marginLeft="150dp"
+                android:layout_marginLeft="110dp"
                 android:layout_marginTop="10dp"
                 android:layout_below="@+id/infomation"
                 android:layout_alignParentLeft="true"
                 android:text="OK"
                 android:textColor="@color/colorPrimaryDark"
-                android:background="@color/colorPrimary"
+                android:background="@color/white"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </RelativeLayout>
