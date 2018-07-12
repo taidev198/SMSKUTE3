@@ -1,13 +1,17 @@
 package com.example.traig.smskute;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,7 +34,7 @@ public class AdapterFavourit  extends RecyclerView.Adapter<AdapterFavourit.ViewH
 
     private FavoritItem listItem;
     Context context;
-
+    private ShareActionProvider shareActionProvider;
     public AdapterFavourit( Context context,FavoritItem listItem) {
 
         this.listItem = listItem;
@@ -42,13 +46,19 @@ public class AdapterFavourit  extends RecyclerView.Adapter<AdapterFavourit.ViewH
     public class ViewHolder extends RecyclerView.ViewHolder{
 
         public TextView title;
-        public ImageButton loveBtn;
+        ImageButton copyBtn1;
+        ImageButton sendBtn;
+        ImageButton loveBtn;
+        ImageButton shareBtn;
 
-        public ViewHolder(View itemView) {
+         ViewHolder(View itemView) {
             super(itemView);
 
             title=  itemView.findViewById(R.id.tv_card);
-            loveBtn = itemView.findViewById(R.id.card_love);
+             copyBtn1 = itemView.findViewById(R.id.copy_btn);
+             sendBtn = itemView.findViewById(R.id.card_send);
+             loveBtn = itemView.findViewById(R.id.card_love);
+             shareBtn = itemView.findViewById(R.id.card_share);
         }
     }
     @Override
@@ -61,6 +71,40 @@ public class AdapterFavourit  extends RecyclerView.Adapter<AdapterFavourit.ViewH
     @Override
     public void onBindViewHolder(AdapterFavourit.ViewHolder holder, final int position) {
         if(listItem != null){
+
+            ClipboardManager myClipboard;
+            final String temp = listItem.getList().get(position);
+            holder.copyBtn1.setOnClickListener(new View.OnClickListener(){
+                public void onClick(View v){
+                    ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("clipboard data ", temp);
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(context, "COPIED!", Toast.LENGTH_SHORT).show();
+                }
+            });
+            holder.sendBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("sms:" + "01627249988"));
+                    intent.putExtra("sms_body", temp);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+                }
+            });
+
+            holder.shareBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+                    sharingIntent.setType("text/plain");
+                    sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "SHARE Here");
+                    sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, temp);
+                    sharingIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(Intent.createChooser(sharingIntent, temp));
+                }
+            });
+
+
             holder.title.setText(listItem.getList().get(position));
             holder.loveBtn.setImageResource(R.drawable.ic_favorite);
             holder.loveBtn.setOnClickListener(new View.OnClickListener() {
@@ -71,7 +115,7 @@ public class AdapterFavourit  extends RecyclerView.Adapter<AdapterFavourit.ViewH
                     FavoritItem favoritItem =(FavoritItem) readFile(listItem.getPathname().get(position));
                     Log.d(TAG, "filename tab3:" + listItem.getPathname().get(position));
                     favoritItem.getIsFavorible().set(Integer.parseInt(listItem.getPos().get(position)),"false");
-                    //favoritItem.getPos().remove(position);
+                    Log.d(TAG, "isFavor:" +favoritItem.getIsFavorible().get(position));
                     Log.d(TAG, "pos:" + listItem.getPos().get(position));
                     listItem.getPos().remove(position);
 
@@ -95,7 +139,7 @@ public class AdapterFavourit  extends RecyclerView.Adapter<AdapterFavourit.ViewH
     }
 
 
-    public Object readFile(String pathname){
+     Object readFile(String pathname){
         FileInputStream fis = null;
         Object person = null;
         try {
@@ -115,7 +159,7 @@ public class AdapterFavourit  extends RecyclerView.Adapter<AdapterFavourit.ViewH
 
     }
 
-    public void writeFile(String pathname,Object obj){
+     void writeFile(String pathname,Object obj){
         FileOutputStream fos = null;
         try {
             fos = context.openFileOutput(pathname, Context.MODE_PRIVATE);

@@ -4,8 +4,10 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -40,10 +43,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private FavoritItem listItemFavourit;
     private FavoritItem favoritItem;
     public MyAdapter(ArrayList<String> listItems, Context mContext,String fileName) {
+        notifyDataSetChanged();
         this.listItems = listItems;
         this.mContext = mContext;
         this.fileName = fileName;
-
         //init data
         favoritItem = (FavoritItem) readFile(fileName);
         if (favoritItem == null) {//check if whether null or not
@@ -90,11 +93,21 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         holder.sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(android.content.Intent.ACTION_SEND);
-                    i.setType("text/plain");
-                    i.putExtra(Intent.EXTRA_SUBJECT, "Subject...");
-                    i.putExtra(Intent.EXTRA_TEXT, temp);
-                    mContext.startActivity(i);
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("sms:" + "01627249988"));
+                intent.putExtra("sms_body", temp);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                mContext.startActivity(intent);
+            }
+        });
+
+        holder.shareBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+                sharingIntent.setType("text/plain");
+                sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, temp);
+                sharingIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                mContext.startActivity(Intent.createChooser(sharingIntent, temp));
             }
         });
 
@@ -109,18 +122,15 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                     listItemFavourit.getPathname().add(fileName);
                     listItemFavourit.getList().add(listItems.get(position));
                     holder.loveBtn.setImageResource(R.drawable.ic_favorite);
-                        favoritItem.getIsFavorible().set(position,"true");
+                    favoritItem.getIsFavorible().set(position,"true");
                     Toast.makeText(mContext ,"ADDED TO FAVOURIT",Toast.LENGTH_LONG).show();
-
-//                        favoritItem.getIsFavorible().clear();
-//                        listItemFavourit.getPos().clear();
-//                        listItemFavourit.getPathname().clear();
                     //wirte to file
                     writeFile("ListItems2.ser",listItemFavourit);
 
                     writeFile(fileName,favoritItem);
+//                        notifyDataSetChanged();
+                        //notifyItemChanged(position);
                 }
-
                 else {
                     favoritItem.getPos().remove(favoritItem.getPos().size() -1);//remove at current pos
                     listItemFavourit.getList().remove(listItemFavourit.getList().size() -1);
@@ -132,6 +142,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                     favoritItem.getIsFavorible().set(position,"false");
                     writeFile("ListItems2.ser",listItemFavourit);
                     writeFile(fileName,favoritItem);
+                        //notifyDataSetChanged();
+                        //notifyItemChanged(position);
                 }
             }
         });
@@ -140,7 +152,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         FileInputStream fis = null;
         Object person = null;
         try {
-            fis = mContext.openFileInput(pathname);
+            fis = this.mContext.openFileInput(pathname);
             ObjectInputStream is = new ObjectInputStream(fis);
             person =  is.readObject();
             is.close();
@@ -156,7 +168,27 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     }
 
-    public void writeFile(String pathname,Object obj){
+
+    public Object readFileAssets(String pathname){
+        InputStream fis ;
+        Object person = null;
+       // AssetManager assetManager = mContext.getAssets();
+        try {
+            fis =  this.mContext.getAssets().open(pathname);
+            ObjectInputStream is = new ObjectInputStream(fis);
+            person =  is.readObject();
+            is.close();
+            fis.close();
+        }  catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return person;
+
+    }
+
+    private void writeFile(String pathname,Object obj){
         FileOutputStream fos = null;
         try {
             fos = mContext.openFileOutput(pathname, Context.MODE_PRIVATE);
@@ -172,22 +204,24 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         }
     }
 
-            @Override
+    @Override
     public int getItemCount() {
         return listItems.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
-        public TextView txtTitle;
-        public ImageButton copyBtn1;
-        public ImageButton sendBtn;
-        public ImageButton loveBtn;
-        public ViewHolder(View itemView) {
+     class ViewHolder extends RecyclerView.ViewHolder{
+         TextView txtTitle;
+         ImageButton copyBtn1;
+         ImageButton sendBtn;
+         ImageButton loveBtn;
+         ImageButton shareBtn;
+         ViewHolder(View itemView) {
             super(itemView);
             txtTitle =  itemView.findViewById(R.id.tv_card);
             copyBtn1 = itemView.findViewById(R.id.copy_btn);
             sendBtn = itemView.findViewById(R.id.card_send);
             loveBtn = itemView.findViewById(R.id.card_love);
+            shareBtn = itemView.findViewById(R.id.card_share);
         }
     }
 }
